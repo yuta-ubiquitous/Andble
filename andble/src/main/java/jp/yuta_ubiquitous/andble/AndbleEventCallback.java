@@ -3,8 +3,11 @@ package jp.yuta_ubiquitous.andble;
 /**
  * Created by yuta-ta on 16/09/03.
  */
-public interface AndbleEventCallback {
-    void onConnect();
-    void onDisconnect();
-    void onConnectFailed();
+public abstract class AndbleEventCallback {
+    public AndbleEventCallback(){};
+
+    public void onConnect(){};
+    public void onDisconnect(){};
+    public void onConnectFailed(){};
+    public void onDiscovery(){};
 }
