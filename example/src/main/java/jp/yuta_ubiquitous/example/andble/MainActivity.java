@@ -8,6 +8,7 @@ import android.util.Log;
 
 import jp.yuta_ubiquitous.andble.AndbleDevice;
 import jp.yuta_ubiquitous.andble.AndbleEventCallback;
+import jp.yuta_ubiquitous.andble.AndbleResultCallback;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,9 +18,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        BluetoothManager manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 
-        AndbleDevice device = new AndbleDevice("DE:BA:08:61:27:01", manager.getAdapter(), new AndbleEventCallback() {
+        final AndbleDevice device = new AndbleDevice("C3:F8:BC:A5:0B:FD", this, new AndbleEventCallback() {
             @Override
             public void onConnect() {
                 super.onConnect();
@@ -62,7 +62,18 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "onScanFailed()");
             }
         });
-        Log.d(TAG, "connect()");
-        device.connect(30000);
+
+        device.connect(30000, new AndbleResultCallback() {
+            @Override
+            public void onSuccess(int operation) {
+                super.onSuccess(operation);
+                device.disconnect();
+            }
+
+            @Override
+            public void onFailed(int operation) {
+                super.onFailed(operation);
+            }
+        });
     }
 }
