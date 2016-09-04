@@ -1,11 +1,11 @@
 # Andble
-Andble is a bluetooth LE library for Android.
-This make easy to write BLE connection processes. 
-It is suitable to develop a prototype or research App.
+Andble is a bluetooth LE library for Android.  
+This make easy to write BLE connection processes.  
+It is suitable to develop a prototype or research App.  
 
 ## Requirements
-Android OS 5.0 ~
-Bluetooth LE
+Android OS 5.0 ~  
+Bluetooth LE  
 
 ## Usage
 
