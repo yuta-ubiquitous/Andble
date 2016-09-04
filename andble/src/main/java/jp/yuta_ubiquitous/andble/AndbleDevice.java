@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -36,6 +37,8 @@ public class AndbleDevice {
     private AndbleResultCallback andbleResultCallback;
     private int currentOperation;
 
+    private UUID characteristicUuid;
+
     final ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
@@ -51,13 +54,11 @@ public class AndbleDevice {
                     @Override
                     public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                         super.onConnectionStateChange(gatt, status, newState);
-                        // Log.d(TAG, "newstatus=" + newState);
                         if( newState == BluetoothProfile.STATE_CONNECTED ){
                             andbleEventCallback.onConnect();
 
                             if( currentOperation == AndbleResultCallback.CONNECT ){
                                 andbleResultCallback.onSuccess( currentOperation );
-                                resetOperation();
                             }
 
                         }else if( newState == BluetoothProfile.STATE_DISCONNECTED ){
@@ -70,11 +71,28 @@ public class AndbleDevice {
                     @Override
                     public void onServicesDiscovered(BluetoothGatt gatt, int status) {
                         super.onServicesDiscovered(gatt, status);
+                        Log.d(TAG, "onServicesDiscoverd()");
+                        if (status == BluetoothGatt.GATT_SUCCESS ){
+                            List<BluetoothGattService> services = gatt.getServices();
+                            for( BluetoothGattService service : services ){
+                                BluetoothGattCharacteristic characteristic = service.getCharacteristic( characteristicUuid );
+                                // find characteristic
+                                if( characteristic != null ){
+                                    switch (currentOperation){
+                                        case AndbleResultCallback.READ:
+                                            bluetoothGatt.readCharacteristic( characteristic );
+                                            break;
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     @Override
                     public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                         super.onCharacteristicRead(gatt, characteristic, status);
+                        byte[] values = characteristic.getValue();
+                        andbleResultCallback.onSuncess( andbleResultCallback.READ, values );
                     }
 
                     @Override
@@ -117,11 +135,6 @@ public class AndbleDevice {
         }
 
         @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-        }
-
-        @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
             andbleEventCallback.onScanFailed();
@@ -153,13 +166,25 @@ public class AndbleDevice {
                     bluetoothLeScanner.stopScan( scanCallback );
                     andbleResultCallback.onFailed( AndbleResultCallback.CONNECT );
                 }
-                resetOperation();
             }
         }, timeout);
     }
 
     public  void disconnect(){
         bluetoothGatt.disconnect();
+    }
+
+    public void read( String uuidStr, AndbleResultCallback callback ){
+        UUID uuid =  UUID.fromString( uuidStr );
+        this.characteristicUuid = uuid;
+
+        this.andbleResultCallback = callback;
+
+        this.currentOperation = AndbleResultCallback.READ;
+        bluetoothGatt.discoverServices();
+
+        //BluetoothGattCharacteristic characteristic = searchCharacteristic( uuid );
+        //return null;//characteristic.getValue();
     }
 
     private boolean checkAddress( String address ){
@@ -171,6 +196,7 @@ public class AndbleDevice {
     }
 
     private void resetOperation(){
+        Log.d(TAG, "resetOperation()");
         this.currentOperation = 0;
         this.andbleResultCallback = null;
     }

@@ -13,5 +13,6 @@ public abstract class AndbleResultCallback {
     public AndbleResultCallback(){};
 
     public void onSuccess( int operation ){};
+    public void onSuncess( int operation, byte[] values){};
     public void onFailed( int operation ){};
 }

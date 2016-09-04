@@ -9,7 +9,7 @@ public abstract class AndbleEventCallback {
     public void onScanFailed(){};
     public void onDiscovery(){};
     public void onNotDiscovery(){};
-    public void onConnect(){};
+    public abstract void onConnect();
     public void onConnectFailed(){};
-    public void onDisconnect(){};
+    public abstract void onDisconnect();
 }
