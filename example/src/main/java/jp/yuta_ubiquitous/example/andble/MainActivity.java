@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         BluetoothManager manager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
 
-        AndbleDevice device = new AndbleDevice("", manager.getAdapter(), new AndbleEventCallback() {
+        AndbleDevice device = new AndbleDevice("DE:BA:08:61:27:01", manager.getAdapter(), new AndbleEventCallback() {
             @Override
             public void onConnect() {
                 super.onConnect();
@@ -42,6 +42,24 @@ public class MainActivity extends AppCompatActivity {
             public void onDiscovery() {
                 super.onDiscovery();
                 Log.d(TAG, "onDiscovery()");
+            }
+
+            @Override
+            public void onNotDiscovery() {
+                super.onNotDiscovery();
+                Log.d(TAG, "onNotDiscovery()");
+            }
+
+            @Override
+            public void onScan() {
+                super.onScan();
+                Log.d(TAG, "onScan()");
+            }
+
+            @Override
+            public void onScanFailed() {
+                super.onScanFailed();
+                Log.d(TAG, "onScanFailed()");
             }
         });
         Log.d(TAG, "connect()");

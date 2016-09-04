@@ -22,52 +22,24 @@ public class AndbleDevice {
     private String TAG = this.getClass().getSimpleName();
 
     private Context context;
-    private UUID uuid;
+    private String address;
     private BluetoothLeScanner bluetoothLeScanner;
     private AndbleEventCallback andbleEventCallback;
+    private boolean isDiscovery;
 
     final ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
+
             BluetoothDevice device = result.getDevice();
-            ParcelUuid[] uuids = device.getUuids();
-            String uuid = "";
-            if (uuids != null) {
-                for (ParcelUuid puuid : uuids) {
-                    uuid += puuid.toString() + " ";
-                }
+            String address = device.getAddress();
+
+            if( checkAddress( address ) ){
+                andbleEventCallback.onDiscovery();
+                isDiscovery = true;
+                bluetoothLeScanner.stopScan( this );
             }
-            String msg = "name=" + device.getName() + ", bondStatus="
-                    + device.getBondState() + ", address="
-                    + device.getAddress() + ", type" + device.getType()
-                    + ", uuids=" + uuid;
-            Log.d(TAG, msg);
-
-            byte[] scanRecord = result.getScanRecord().getBytes();
-            String serviceUuid = String.format("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-                    scanRecord[ 5] & 0xff,
-                    scanRecord[ 6] & 0xff,
-                    scanRecord[ 7] & 0xff,
-                    scanRecord[ 8] & 0xff,
-
-                    scanRecord[ 9] & 0xff,
-                    scanRecord[10] & 0xff,
-
-                    scanRecord[11] & 0xff,
-                    scanRecord[12] & 0xff,
-
-                    scanRecord[13] & 0xff,
-                    scanRecord[14] & 0xff,
-
-                    scanRecord[15] & 0xff,
-                    scanRecord[16] & 0xff,
-                    scanRecord[17] & 0xff,
-                    scanRecord[18] & 0xff,
-                    scanRecord[19] & 0xff,
-                    scanRecord[20] & 0xff
-            );
-            Log.d(TAG, serviceUuid);
         }
 
         @Override
@@ -78,24 +50,38 @@ public class AndbleDevice {
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
+            andbleEventCallback.onScanFailed();
         }
     };
 
-    public AndbleDevice(String uuid, BluetoothAdapter adapter, AndbleEventCallback callback){
-        //this.uuid = UUID.fromString(uuid);
+    public AndbleDevice(String address, BluetoothAdapter adapter, AndbleEventCallback callback){
+        this.address = address;
         this.bluetoothLeScanner = adapter.getBluetoothLeScanner();
         this.andbleEventCallback = callback;
+        this.isDiscovery = false;
     }
 
     public void connect( int timeout ){
-
         bluetoothLeScanner.startScan( scanCallback );
+        andbleEventCallback.onScan();
+
         Handler timeHandler = new Handler();
         timeHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+                if(!isDiscovery){
+                    andbleEventCallback.onNotDiscovery();
+                }
                 bluetoothLeScanner.stopScan( scanCallback );
             }
         }, timeout);
+    }
+
+    private boolean checkAddress( String address ){
+        if( this.address.equals( address ) ){
+            return true;
+        }else{
+            return false;
+        }
     }
 }

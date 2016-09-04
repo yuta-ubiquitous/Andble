@@ -5,9 +5,11 @@ package jp.yuta_ubiquitous.andble;
  */
 public abstract class AndbleEventCallback {
     public AndbleEventCallback(){};
-
-    public void onConnect(){};
-    public void onDisconnect(){};
-    public void onConnectFailed(){};
+    public void onScan(){};
+    public void onScanFailed(){};
     public void onDiscovery(){};
+    public void onNotDiscovery(){};
+    public void onConnect(){};
+    public void onConnectFailed(){};
+    public void onDisconnect(){};
 }
